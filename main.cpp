@@ -32,6 +32,11 @@ DEF_IS(UseType, T) from_py_object(PyObject* obj) {
     return T(PyUnicode_AsUTF8(obj));
 }
 
+DEF_IS(UseType, bool) is_type(PyObject* obj) {
+    return Py_TYPE(obj) == &PyjtUseType ||
+           PyUnicode_CheckExact(obj);
+}
+
 int add(int i, int j)
 {
     return i + j;
