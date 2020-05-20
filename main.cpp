@@ -55,6 +55,56 @@ PYBIND11_MODULE(leetcode, m)
     m.attr("what") = world;
 }
 
+// should Py_INCREF(Py_None) be required before returning Py_None in C
+#define GET_PY_NONE(code) ((code), Py_INCREF(Py_None), Py_None)
+
+extern "C" uint32_t get_tid();
+
+uint32_t get_tid() {
+    return (uint32_t)12;
+}
+
+void pyjt_def_jit_get_tid(PyObject*m) {
+    static PyMethodDef defs[] = {
+            {0, 0, 0, 0}
+    };
+    PyModule_AddFunctions(m, defs);
+    // sub module def
+    static PyMethodDef submodule_defs[] = {
+            {R""(check_empty_block)"",
+            (PyCFunction) (PyObject *(*)(PyObject *, PyObject **, int64_t, PyObject *))
+                    [](PyObject *self, PyObject **args, int64_t n, PyObject *kw) -> PyObject * {
+                        try { ;
+                            int64_t arg_filled = 0;
+                            (void) arg_filled;
+
+                            if (n <= 0 && n >= 0) { ;;
+                                return GET_PY_NONE((get_tid()));
+                            }
+                        } catch (const std::exception &e) {
+                            PyErr_Format(PyExc_RuntimeError, "%s\n%s",
+                                         e.what(),
+                                         R""(Declarations:
+                                  static inline void test_check_empty_block()
+                               )""
+                            );
+                        }
+                        return nullptr;
+                    },
+            METH_FASTCALL | METH_KEYWORDS,
+            R""(Document:
+ From /home/wuyongyu/.conda/envs/python37/lib/python3.7/site-packages/teaflow-1.0.0-py3.7.egg/tea/src/opt/pass/expand_empty_block_pass.cpp
+Declaration:
+static inline void test_check_empty_block())""
+            },
+            {0,0,0,0}
+
+    };
+    auto sub = PyImport_AddModule("teaflow_core.tests");
+    PyModule_AddFunctions(sub, submodule_defs);
+    PyModule_AddObject(m, "tests", sub);
+
+}
 
 int main() {
     std::cout << "this is main cpp" << std::endl;
