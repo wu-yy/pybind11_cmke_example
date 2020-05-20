@@ -7,7 +7,6 @@
 #include <streambuf>
 #include "misc/hash.h"
 #include "types.h"
-#include "log.h"
 #include "common.h"
 
 namespace leetcode {
@@ -43,14 +42,14 @@ string join(string a, string b) {
 void find_names(string cmd, vector<string>& input_names, string& output_name, map<string,vector<string>>& extra) {
     size_t i=0;
     while (i<cmd.size() && cmd[i] != ' ') i++;
-    CHECK(i<cmd.size());
+    // CHECK(i<cmd.size());
     // find space not in str
     auto pass = [&](size_t& j) {
         while (j<cmd.size()) {
             if (cmd[j]=='\'') {
                 j++;
                 while (j<cmd.size() && cmd[j]!='\'') j++;
-                ASSERT(j<cmd.size());
+                // ASSERT(j<cmd.size());
                 j++;
                 continue;
             }
@@ -77,10 +76,10 @@ void find_names(string cmd, vector<string>& input_names, string& output_name, ma
             if (i+2<cmd.size() && cmd[i+1]=='o' && cmd[i+2]==' ') {
                 auto j=i+3;
                 while (j<cmd.size() && cmd[j] == ' ') j++;
-                CHECK(j<cmd.size());
+                //CHECK(j<cmd.size());
                 auto k=j;
                 pass(k);
-                CHECK(j<k && output_name.size()==0);
+                // CHECK(j<k && output_name.size()==0);
                 // -o xxx
                 // i  j  k
                 output_name = substr(j, k);
@@ -92,7 +91,7 @@ void find_names(string cmd, vector<string>& input_names, string& output_name, ma
                 while (j<cmd.size() && cmd[j]==' ') j++;
                 size_t k=j;
                 pass(k);
-                CHECK(j<k);
+                // CHECK(j<k);
                 auto inc = substr(j, k);
                 // find include
                 i = k;
@@ -116,11 +115,11 @@ void find_names(string cmd, vector<string>& input_names, string& output_name, ma
         input_names.push_back(substr(i, j));
         i = j;
     }
-    std::cout  << "output_name: " << output_name
-               << " input_names: " << input_names << "\n" << cmd;
-//    CHECK(output_name.size() && input_names.size())
-//            << "output_name: " << output_name
-//            << " input_names: " << input_names << "\n" << cmd;
+    // std::cout  << "output_name: " << output_name
+    //          << " input_names: " << input_names << "\n" << cmd;
+   //    CHECK(output_name.size() && input_names.size())
+   //            << "output_name: " << output_name
+   //            << " input_names: " << input_names << "\n" << cmd;
 }
 
 size_t skip_comments(const string& src, size_t i) {
@@ -158,7 +157,7 @@ void process(string src, vector<string>& input_names) {
             if (src[k] == '"' && src[l-1] == '"' && j-i==8 && src.substr(i,j-i) == "#include") {
                 auto inc = src.substr(k+1, l-k-2);
                 if (inc != "test.h") {
-                     std::cerr << "Found include" << inc;
+                     // std::cout << "Found include" << inc;
                     input_names.push_back(inc);
                 }
             }

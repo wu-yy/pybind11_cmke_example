@@ -38,7 +38,7 @@ def run_cmd(cmd, cwd = None, err_msg= None, print_err = True):
         if print_err:
             sys.stderr.write(s)
         if err_msg is None:
-            err_msg = f"Run cmd failed: {cmd}"
+            err_msg = f"utils.py Run cmd failed: {cmd}"
         if not print_err:
             err_msg += "\n"+s
         raise Exception(err_msg)
@@ -113,10 +113,10 @@ def find_cache_path() :
         sys.path.append(path)
     return path
 
-def try_import_jit_utils_core(silent=None):
+def try_import_utils_core(silent=None):
     global cc
     if cc:
-        print("global jit_utils_core cc is alread import!")
+        print("global utils_core cc is alread import!")
         return
     if not (silent is None):
         prev = os.environ.get("log_silent", "0")
@@ -124,8 +124,8 @@ def try_import_jit_utils_core(silent=None):
     try:
         # if is in notebook, must log sync, and we redirect the log
         if is_in_ipynb: os.environ["log_sync"] = "1"
-        import jit_utils_core as cc
-        print("first import jit_utils_core cc!")
+        import utils_core as cc
+        print("first import utils_core cc!")
         if is_in_ipynb:
             global redirector
             redirector = cc.ostream_redirect(stdout=True, stderr=True)
@@ -137,7 +137,7 @@ def try_import_jit_utils_core(silent=None):
 
 def do_compile(args):
     cmd, cache_path, tea_path = args
-    try_import_jit_utils_core(True)
+    try_import_utils_core(True)
     if cc:
         return cc.cache_compile(cmd, cache_path, tea_path)
     else:

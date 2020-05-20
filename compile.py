@@ -1,11 +1,16 @@
 import os
 import sys
+import subprocess as sp
 from utils import  run_cmd, find_exe, \
     try_find_exe, cc_path, cache_path, remove_flags, run_cmds, make_cache_dir
 from ctypes import cdll
 import utils
 import ctypes
+from ctypes import cdll
+from ctypes.util import find_library
+import platform
 
+print(platform.platform() )
 '''
 python path
 '''
@@ -16,10 +21,12 @@ assert os.path.isfile(python_path)
 if not os.path.isfile(py3_config_path) :
     py3_config_path = sys.executable + '3-config'
 
+# extension_suffix : .cpython-37m-darwin.so
 extension_suffix = run_cmd(py3_config_path+" --extension-suffix")
 '''
 py3_config_path : /Users/wuyongyu/anaconda3/bin/python3-config
 '''
+
 assert os.path.isfile(py3_config_path)
 
 def find_project_path():
@@ -39,8 +46,8 @@ cc_type = "g++"
 '''
 ctypes
 '''
-dlopen_flags = os.RTLD_NOW | os.RTLD_GLOBAL | os.RTLD_DEEPBIND
-import_flags = os.RTLD_NOW | os.RTLD_GLOBAL | os.RTLD_DEEPBIND
+dlopen_flags = os.RTLD_NOW | os.RTLD_GLOBAL #| os.RTLD_DEEPBIND
+import_flags = os.RTLD_NOW | os.RTLD_GLOBAL #| os.RTLD_DEEPBIND
 
 '''
 project path
@@ -56,8 +63,7 @@ core_link_flags = ""
 '''
 link 
 '''
-link_flags = " -lstdc++ -ldl -shared "
-
+link_flags = f" -lstdc++ -ldl -shared "
 lto_flags = ""
 if os.environ.get("enable_lto") == "1":
     if cc_type == "icc":
@@ -117,7 +123,7 @@ if has_cuda:
         nvcc_flags += f" -x cu --cudart=shared -ccbin='{cc_path}' --use_fast_math "
         # nvcc warning is noise
         nvcc_flags += " -w "
-        nvcc_flags += f" -I'{os.path.join(teaflow_path, 'extern/cuda/inc')}' "
+        nvcc_flags += f" -I'{os.path.join(project_path, 'extern/cuda/inc')}' "
         if os.environ.get("cuda_debug", "0") == "1":
             nvcc_flags += " -G "
         return nvcc_flags
@@ -128,10 +134,17 @@ cc_flags
 '''
 cc_flags = " " + os.environ.get("cc_flags", "")
 cc_flags += " -Wall -Werror -Wno-unknown-pragmas -std=c++14 -fPIC -march=native "
+# On Mac OS: the build command is almost the same but it also requires passing
+# the -undefined dynamic_lookup flag so as to ignore missing symbols
+# when building the module more is : https://pybind11.readthedocs.io/en/stable/compiling.html
+if platform.platform().startswith("Darwin"):
+    cc_flags += " -undefined dynamic_lookup "
+
 cc_flags += " -fdiagnostics-color=always "
 check_debug_flags()
 # build cache_compile
-cc_flags += f" -I{project_path} "
+#
+# cc_flags += f" "
 # get the pybind11 include path
 
 #pybind_include:
@@ -139,6 +152,7 @@ cc_flags += f" -I{project_path} "
 #-I/Users/wuyongyu/anaconda3/lib/python3.7/site-packages/pybind11/include
 pybind_include = run_cmd(python_path+" -m pybind11 --includes")
 cc_flags += pybind_include
+cc_flags += f" -I{project_path} "
 
 opt_flags = ""
 kernel_opt_flags = os.environ.get("kernel_flags", "") + opt_flags + " -fopenmp "
@@ -150,25 +164,26 @@ if ' -O' not in cc_flags:
 # compile first enter
 def check_cache_compile():
     files = [
-        "src/utils/cache_compile.cpp",
-        "src/tracer.cpp",
-        "src/log.cpp",
-        "src/flags.cpp",
-        "src/jit_utils/jit_utils.cpp",
+        "file/file.cpp",
+        "cache_compile.cpp",
+        "cache_utils.cpp", # 通过Pybind11绑定 cache_compile 函数
     ]
-    global jit_utils_core_files
-    jit_utils_core_files = files
+    global utils_core_files
+    utils_core_files = files
     # here cc_path is "g++"
-    recompile = compile(cc_path, cc_flags+f" {opt_flags} ", files, 'jit_utils_core'+extension_suffix, True)
+    recompile = compile(cc_path, cc_flags+f" {opt_flags} ", files, 'utils_core'+extension_suffix, True)
+
+    return
+
     if recompile and utils.cc:
-        print("jit_utils updated, please restart teaflow. stop")
+        print("jit_utils updated, please restart python. stop")
         sys.exit(0)
     if not utils.cc:
         with utils.import_scope(import_flags):
-            utils.try_import_jit_utils_core()
+            utils.try_import_utils_core()
         assert utils.cc
         # recompile, generate cache key
-        compile(cc_path, cc_flags+f" {opt_flags} ", files, 'jit_utils_core'+extension_suffix, True)
+        compile(cc_path, cc_flags+f" {opt_flags} ", files, 'utils_core'+extension_suffix, True)
 
 
 def compile(compiler, flags, inputs, output, combind_build=False):
@@ -177,12 +192,12 @@ def compile(compiler, flags, inputs, output, combind_build=False):
             print("compile: tea_utils.cc is not none!")
             return utils.cc.cache_compile(cmd, cache_path, project_path)
         else:
-            print(f"do_compile:{cmd}")
+            #print(f"do_compile:{cmd}")
             run_cmd(cmd)
             return True
     link = link_flags
     # if output is core, add core_link_flags
-    if output.startswith("teaflow_core"):
+    if output.startswith("leetcode_core"):
         link = link + core_link_flags
     output = os.path.join(cache_path, output)
 
@@ -199,7 +214,7 @@ def compile(compiler, flags, inputs, output, combind_build=False):
     inputs = new_inputs
     if len(inputs) == 1 or combind_build:
         cmd = f"{compiler} {' '.join(inputs)} {flags} {link} -o {output}"
-        print("compile cmd:", cmd)
+        #print("compile cmd:", cmd)
         return do_compile(cmd)
     # split compile object file and link
     # remove -l -L -Wl flags when compile object files
@@ -224,7 +239,7 @@ def compile(compiler, flags, inputs, output, combind_build=False):
 # 如果已经加载jit_utils_core不用二次加载
 with utils.import_scope(import_flags):
     print("first try import uitls core")
-    utils.try_import_jit_utils_core()
+    utils.try_import_utils_core()
 
 make_cache_dir(cache_path)
 make_cache_dir(os.path.join(cache_path, "jit"))

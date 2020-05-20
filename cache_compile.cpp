@@ -4,7 +4,7 @@
 
 #include "cache_compile.h"
 #include "misc/util.h"
-//#include "file/file.h"
+#include "file/file.h"
 #include <fstream>
 #include "misc/hash.h"
 #include <string>
@@ -28,8 +28,8 @@ bool cache_compile(const string& cmd,
                      "cd " + cache_path + " && " + cmd
                                            : cmd;
     if (output_cache_key.size() == 0) {
-        std::cout << "Cache key of" << output_name << "not found.";
-        std::cout << "Run cmd:" << cmd;
+        // std::cout << "Cache key of" << output_name << "not found.";
+        // std::cout << "Run cmd:" << cmd;
         system_with_check(cd_cmd.c_str());
         ran = true;
     }
@@ -39,14 +39,15 @@ bool cache_compile(const string& cmd,
     // auto src_path = join(teaflow_path, "");
     auto src_path = teaflow_path;
 
+
     const auto& extra_include = extra["I"];
     for (size_t i=0; i<input_names.size(); i++) {
         if (processed.count(input_names[i]) != 0)
             continue;
         processed.insert(input_names[i]);
         auto src = read_all(input_names[i]);
-        if (src.size() == 0) {
-            std::cerr << << "Source read failed:" << input_names[i];
+        if (src.size() == 0 && input_names[i] != "dynamic_lookup") {
+            std::cerr << "Source read failed:" << input_names[i] << std::endl;
         }
         // ASSERT(src.size()) << "Source read failed:" << input_names[i];
         auto hash = S(hash64(src));
@@ -73,13 +74,14 @@ bool cache_compile(const string& cmd,
                 }
                 if (!found) {
                     std::cerr << "Include file" << name << "not found in" << extra_include
-                              << "\nCommands:" << cmd;
+                              << "\nCommands:" << cmd << std::endl;
                 }
-                ASSERT(found) << "Include file" << name << "not found in" << extra_include
-                              >> "\nCommands:" << cmd;
-                LOGvvvv << "Include file found:" << full_name;
+//                ASSERT(found) << "Include file" << name << "not found in" << extra_include
+//                              >> "\nCommands:" << cmd;
+                // LOGvvvv << "Include file found:" << full_name;
+                std::cout << "Include file found:" << full_name << std::endl;
             }
-            input_names.push_back(full_name);
+//            input_names.push_back(full_name);
         }
         cache_key += "# ";
         cache_key += input_names[i];
@@ -88,18 +90,20 @@ bool cache_compile(const string& cmd,
         cache_key += "\n";
     }
     if (output_cache_key.size() != 0 && output_cache_key != cache_key) {
-        LOGvv << "Cache key of" << output_name << "changed.";
-        LOGvvv << "Run cmd:" << cmd;
+        std::cout  << "Cache key of" << output_name << " changed." << std::endl;
+        std::cout << "Run cmd:" << cmd << std::endl;
         system_with_check(cd_cmd.c_str());
         ran = true;
     }
     if (output_cache_key != cache_key) {
-        LOGvvvv << "Prev cache key" << output_cache_key;
-        LOGvvvv << "Write cache key" << output_name+".key:\n" >> cache_key;
+        std::cout << "Prev cache key" << output_cache_key;
+        std::cout << "Write cache key" << output_name+".key:\n" << cache_key;
         write(output_name+".key", cache_key);
     }
-    if (!ran)
-        LOGvv << "Command cached:" << cmd;
+    if (!ran) {
+        std::cout << "Command cached:" << cmd << std::endl;
+        // LOGvv << "Command cached:" << cmd;
+    }
 
     return ran;
 }
@@ -113,9 +117,9 @@ void test_cache_compile() {
   string cmd = "g++ main.cpp -o main.o";
   string cache_path = "/Users/wuyongyu/CLionProjects/teaflow";
   string teaflow_path = "/Users/wuyongyu/CLionProjects/teaflow";
-  CHECK(cache_compile(cmd, cache_path, teaflow_path))
-       << " cache compile cmd:"
-       << cmd;
+//  CHECK(cache_compile(cmd, cache_path, teaflow_path))
+//       << " cache compile cmd:"
+//       << cmd;
 
 }
 #endif
