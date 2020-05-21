@@ -10,6 +10,46 @@ import threading
 import time
 from ctypes import cdll
 
+class LogWarper:
+    def __init__(self):
+        pass
+
+    def log_capture_start(self):
+        cc.log_capture_start()
+
+    def log_capture_stop(self):
+        cc.log_capture_stop()
+
+    def log_capture_read(self):
+        return cc.log_capture_read()
+
+    def _log(self, level, verbose, *msg):
+        if len(msg):
+            msg = " ".join([ str(m) for m in msg ])
+        else:
+            msg = str(msg)
+        # get info
+        f = inspect.currentframe()
+        fileline = inspect.getframeinfo(f.f_back.f_back)
+        fileline = f"{os.path.dirname(fileline.filename)}/{os.path.basename(fileline.filename)}[{fileline.function}]:{fileline.lineno}"
+        if cc and hasattr(cc, "log"):
+            cc.log(fileline, level, verbose, msg)
+        else:
+            time = datetime.datetime.now().strftime("%m%d %H:%M:%S.%f")
+            tid = threading.get_ident()%100
+            v = f" v{verbose}" if verbose else ""
+            print(f"[{level} {time} {tid:02}{v} {fileline}] {msg}")
+
+    def V(self, verbose, *msg): self._log('i', verbose, *msg)
+    def v(self, *msg): self._log('i', 1, *msg)
+    def vv(self, *msg): self._log('i', 10, *msg)
+    def vvv(self, *msg): self._log('i', 100, *msg)
+    def vvvv(self, *msg): self._log('i', 1000, *msg)
+    def i(self, *msg): self._log('i', 0, *msg)
+    def w(self, *msg): self._log('w', 0, *msg)
+    def e(self, *msg): self._log('e', 0, *msg)
+    def f(self, *msg): self._log('f', 0, *msg)
+
 def remove_flags(flags, rm_flags):
     flags = flags.split(" ")
     output = []
@@ -76,7 +116,7 @@ def get_cc_type(cc_path):
     if "clang" in bname: return "clang"
     if "icc" in bname or "icpc" in bname: return "icc"
     if "g++" in bname: return "g++"
-    print(f"Unknown cc type: {bname}")
+    LOG.e(f"Unknown cc type: {bname}")
 
 def find_cache_path() :
     global project_name
@@ -116,16 +156,16 @@ def find_cache_path() :
 def try_import_utils_core(silent=None):
     global cc
     if cc:
-        print("global utils_core cc is alread import!")
+        LOG.i("global utils_core cc is alread import!")
         return
     if not (silent is None):
-        prev = os.environ.get("log_silent", "0")
-        os.environ["log_silent"] = str(int(silent))
+        prev = os.environ.get("FLAGS_log_silent", "0")
+        os.environ["FLAGS_log_silent"] = str(int(silent))
     try:
         # if is in notebook, must log sync, and we redirect the log
         if is_in_ipynb: os.environ["log_sync"] = "1"
         import utils_core as cc
-        print("first import utils_core cc!")
+        LOG.i("first import utils_core cc!")
         if is_in_ipynb:
             global redirector
             redirector = cc.ostream_redirect(stdout=True, stderr=True)
@@ -133,7 +173,7 @@ def try_import_utils_core(silent=None):
     except Exception as _:
         pass
     if not (silent is None):
-        os.environ["log_silent"] = prev
+        os.environ["FLAGS_log_silent"] = prev
 
 def do_compile(args):
     cmd, cache_path, tea_path = args
@@ -151,13 +191,14 @@ def run_cmds(cmds, cache_path, teaflow_path):
 
 def make_cache_dir(cache_path):
     if not os.path.isdir(cache_path):
-        print(f"Create cache dir: {cache_path}")
+        LOG.i(f"Create cache dir: {cache_path}")
         os.mkdir(cache_path)
 
 
 project_name = "leetcode"
 is_in_ipynb = False
 cc = None
+LOG = LogWarper()
 cc_path = env_or_find('cc_path', 'g++')
 os.environ["cc_path"] = cc_path
 cc_type = get_cc_type(cc_path)

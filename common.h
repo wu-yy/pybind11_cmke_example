@@ -9,6 +9,10 @@
 #include "types.h"
 #include <iostream>
 
+#include "mflag/mflag.h"
+#include "log/log.h"
+#include "flags.h"
+
 #define JIT_TEST(name) extern "C" void jit_test_ ## name ()
 
 // 声明 error 函数

@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess as sp
 from utils import  run_cmd, find_exe, \
-    try_find_exe, cc_path, cache_path, remove_flags, run_cmds, make_cache_dir
+    try_find_exe, cc_path, cache_path, remove_flags, run_cmds, make_cache_dir, LOG
 from ctypes import cdll
 import utils
 import ctypes
@@ -164,6 +164,10 @@ if ' -O' not in cc_flags:
 # compile first enter
 def check_cache_compile():
     files = [
+        "mflag/mflag.cpp",
+        "flags.cpp",
+        "log/tracer.cpp",
+        "log/log.cpp",
         "file/file.cpp",
         "cache_compile.cpp",
         "cache_utils.cpp", # 通过Pybind11绑定 cache_compile 函数
@@ -189,7 +193,7 @@ def check_cache_compile():
 def compile(compiler, flags, inputs, output, combind_build=False):
     def do_compile(cmd):
         if utils.cc:  # NOTE(wuyongyu)
-            print("compile: tea_utils.cc is not none!")
+            LOG.i("compile: tea_utils.cc is not none!")
             return utils.cc.cache_compile(cmd, cache_path, project_path)
         else:
             #print(f"do_compile:{cmd}")
@@ -212,6 +216,7 @@ def compile(compiler, flags, inputs, output, combind_build=False):
             obj_files.append(os.path.join(
                 cache_path, "obj_files", os.path.basename(name)+".o"))
     inputs = new_inputs
+    # compile cache cpps
     if len(inputs) == 1 or combind_build:
         cmd = f"{compiler} {' '.join(inputs)} {flags} {link} -o {output}"
         #print("compile cmd:", cmd)

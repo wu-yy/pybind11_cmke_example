@@ -12,11 +12,11 @@
 using string = std::string;
 namespace leetcode {
 namespace jit_compiler {
-// cache_path 是代码生成的.h .cpp
-// teaflow_path 是本项目目录
 bool cache_compile(const string& cmd,
                    const string& cache_path,
                    const string& teaflow_path) {
+    LOGvv << "debug:" << FLAGS_debug;
+    LOGvv << "name:" << FLAGS_project_name;
     vector<string> input_names;
     map<string, vector<string >> extra;
     string output_name;
@@ -73,13 +73,13 @@ bool cache_compile(const string& cmd,
                     }
                 }
                 if (!found) {
-                    std::cerr << "Include file" << name << "not found in" << extra_include
-                              << "\nCommands:" << cmd << std::endl;
+                    LOGe << "Include file" << name << "not found in" << extra_include
+                              << "\nCommands:" << cmd;
                 }
 //                ASSERT(found) << "Include file" << name << "not found in" << extra_include
 //                              >> "\nCommands:" << cmd;
                 // LOGvvvv << "Include file found:" << full_name;
-                std::cout << "Include file found:" << full_name << std::endl;
+                LOGe << "Include file found:" << full_name;
             }
 //            input_names.push_back(full_name);
         }
@@ -90,18 +90,18 @@ bool cache_compile(const string& cmd,
         cache_key += "\n";
     }
     if (output_cache_key.size() != 0 && output_cache_key != cache_key) {
-        std::cout  << "Cache key of" << output_name << " changed." << std::endl;
-        std::cout << "Run cmd:" << cmd << std::endl;
+        LOGvv  << "Cache key of" << output_name << " changed.";
+        LOGvv << "Run cmd:" << cmd;
         system_with_check(cd_cmd.c_str());
         ran = true;
     }
     if (output_cache_key != cache_key) {
-        std::cout << "Prev cache key" << output_cache_key;
-        std::cout << "Write cache key" << output_name+".key:\n" << cache_key;
+        LOGvv << "Prev cache key" << output_cache_key;
+        LOGvv << "Write cache key" << output_name+".key:\n" << cache_key;
         write(output_name+".key", cache_key);
     }
     if (!ran) {
-        std::cout << "Command cached:" << cmd << std::endl;
+        LOGvv << "Command cached:" << cmd;
         // LOGvv << "Command cached:" << cmd;
     }
 
