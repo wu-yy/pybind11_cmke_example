@@ -164,7 +164,9 @@ def try_import_utils_core(silent=None):
     try:
         # if is in notebook, must log sync, and we redirect the log
         if is_in_ipynb: os.environ["log_sync"] = "1"
+        LOG.i("import utils_core")
         import utils_core as cc
+        print("sucecQ")
         LOG.i("first import utils_core cc!")
         if is_in_ipynb:
             global redirector
@@ -185,15 +187,30 @@ def do_compile(args):
         return True
 
 def run_cmds(cmds, cache_path, teaflow_path):
+    print("utils.py run cmds:", cmds)
     cmds = [ [cmd, cache_path, teaflow_path] for cmd in cmds ]
-    with Pool(8) as p:
-        p.map(do_compile, cmds)
+    for cmd in cmds:
+        do_compile(cmd)
+    # with Pool(1) as p:
+    #     p.map(do_compile, cmds)
+    # with Pool(8) as p:
+    #     p.map(do_compile, cmds)
 
 def make_cache_dir(cache_path):
     if not os.path.isdir(cache_path):
         LOG.i(f"Create cache dir: {cache_path}")
         os.mkdir(cache_path)
 
+@contextlib.contextmanager
+def simple_timer(name):
+    LOG.i("Timer start", name)
+    now = time.time()
+    yield
+    LOG.i("Time stop", name, time.time()-now)
+
+
+def print_utils():
+    print("this is utils")
 
 project_name = "leetcode"
 is_in_ipynb = False
@@ -203,3 +220,6 @@ cc_path = env_or_find('cc_path', 'g++')
 os.environ["cc_path"] = cc_path
 cc_type = get_cc_type(cc_path)
 cache_path = find_cache_path()
+
+
+# try_import_utils_core()

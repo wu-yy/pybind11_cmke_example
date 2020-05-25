@@ -12,11 +12,24 @@
 using string = std::string;
 namespace leetcode {
 namespace jit_compiler {
+
+bool startswith(const string& a, const string& b, uint start, bool equal = false, uint end = 0) {
+    if (!end) end = a.size();
+    if (b.size()+start > end) return false;
+    if (equal && b.size()+start != end) return false;
+    for (uint i=0; i<b.size(); i++)
+        if (a[i+start] != b[i]) return false;
+    return true;
+}
+
+bool endswith(const string& a, const string& b) {
+    if (a.size() < b.size()) return false;
+    return startswith(a, b, a.size()-b.size());
+}
+
 bool cache_compile(const string& cmd,
                    const string& cache_path,
                    const string& teaflow_path) {
-    LOGvv << "debug:" << FLAGS_debug;
-    LOGvv << "name:" << FLAGS_project_name;
     vector<string> input_names;
     map<string, vector<string >> extra;
     string output_name;
@@ -27,29 +40,40 @@ bool cache_compile(const string& cmd,
     string  cd_cmd = cache_path.size() > 0 ?
                      "cd " + cache_path + " && " + cmd
                                            : cmd;
+    // 让core 可以一直编译
+    if (endswith(output_name, "leetcode_core.cpython-37m-darwin.so")) {
+        output_cache_key = "";
+    }
+
+    LOGi << output_name << " " << output_cache_key.size();
     if (output_cache_key.size() == 0) {
         // std::cout << "Cache key of" << output_name << "not found.";
         // std::cout << "Run cmd:" << cmd;
+        LOGi << cmd;
         system_with_check(cd_cmd.c_str());
         ran = true;
     }
     string cache_key = cmd;
     cache_key += "\n";
     unordered_set<string> processed;
-    // auto src_path = join(teaflow_path, "");
-    auto src_path = teaflow_path;
+    auto src_path = join(teaflow_path, "");
+    // auto src_path = teaflow_path;
 
 
     const auto& extra_include = extra["I"];
     for (size_t i=0; i<input_names.size(); i++) {
+        if (input_names[i] == "dynamic_lookup") {
+            LOGi << input_names[i];
+            continue;
+        }
         if (processed.count(input_names[i]) != 0)
             continue;
         processed.insert(input_names[i]);
         auto src = read_all(input_names[i]);
-        if (src.size() == 0 && input_names[i] != "dynamic_lookup") {
+        if (src.size() == 0 ) {
             std::cerr << "Source read failed:" << input_names[i] << std::endl;
         }
-        // ASSERT(src.size()) << "Source read failed:" << input_names[i];
+        ASSERT(src.size()) << "Source read failed:" << input_names[i];
         auto hash = S(hash64(src));
         vector<string> new_names;
         process(src, new_names);
@@ -76,12 +100,12 @@ bool cache_compile(const string& cmd,
                     LOGe << "Include file" << name << "not found in" << extra_include
                               << "\nCommands:" << cmd;
                 }
-//                ASSERT(found) << "Include file" << name << "not found in" << extra_include
-//                              >> "\nCommands:" << cmd;
+                ASSERT(found) << "Include file" << name << "not found in" << extra_include
+                              >> "\nCommands:" << cmd;
                 // LOGvvvv << "Include file found:" << full_name;
-                LOGe << "Include file found:" << full_name;
+                // LOGi << "Include file found:" << full_name;
             }
-//            input_names.push_back(full_name);
+//          input_names.push_back(full_name);
         }
         cache_key += "# ";
         cache_key += input_names[i];

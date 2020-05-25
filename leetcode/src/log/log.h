@@ -2,9 +2,6 @@
 // Created by wuyongyu on 2020/5/21.
 //
 
-//
-// Created by wuyongyu on 2020-04-08.
-//
 #pragma once
 #include <string>
 #include <sstream>
@@ -113,10 +110,10 @@ constexpr int32_t basename_index(const char * const path, const int32_t index = 
     (&((__FILE__ ":" STRINGIZE(__LINE__))[leetcode::basename_index(__FILE__)]))
 
 
-#define _LOGi(v) LogVoidify() && Log(__FILELINE__, 'i', v)
-#define _LOGw(v) LogVoidify() && Log(__FILELINE__, 'w', v)
-#define _LOGe(v) LogVoidify() && Log(__FILELINE__, 'e', v)
-#define _LOGf(v) LogFatalVoidify() && Log(__FILELINE__, 'f', v)
+#define _LOGi(v) leetcode::LogVoidify() && leetcode::Log(__FILELINE__, 'i', v)
+#define _LOGw(v) leetcode::LogVoidify() && leetcode::Log(__FILELINE__, 'w', v)
+#define _LOGe(v) leetcode::LogVoidify() && leetcode::Log(__FILELINE__, 'e', v)
+#define _LOGf(v) leetcode::LogFatalVoidify() && leetcode::Log(__FILELINE__, 'f', v)
 #define LOGi _LOGi(0)
 #define LOGw _LOGw(0)
 #define LOGe _LOGe(0)
@@ -129,7 +126,10 @@ constexpr int32_t basename_index(const char * const path, const int32_t index = 
     !(cond) ? (void) 0 : _LOG(level, v)
 #define LOG_IF(level, cond) _LOG_IF(level, cond, 0)
 
-    bool check_vlog(const char* fileline, int verbose);
+DECLARE_FLAG(int, log_v);
+DECLARE_FLAG(std::string, log_vprefix);
+
+bool check_vlog(const char* fileline, int verbose);
 
 #define V_ON(v) PREDICT_BRANCH_NOT_TAKEN(FLAGS_log_vprefix.size() ? \
         check_vlog(__FILELINE__, v) : \

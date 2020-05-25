@@ -6,7 +6,3 @@ import leetcode
 leetcode.add(1,3)
 
 '''
-
-
-
-python setup.py build_ext --inplace

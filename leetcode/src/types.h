@@ -14,52 +14,52 @@
 
 namespace leetcode {
 
-    typedef int8_t int8;
-    typedef int16_t int16;
-    typedef int int32;
-    typedef int64_t int64;
-    typedef uint8_t uint8;
-    typedef uint16_t uint16;
-    typedef uint32_t uint32;
-    typedef uint64_t uint64;
-    typedef float float32;
-    typedef double float64;
-    typedef uint32_t uint;
+typedef int8_t int8;
+typedef int16_t int16;
+typedef int int32;
+typedef int64_t int64;
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
+typedef uint64_t uint64;
+typedef float float32;
+typedef double float64;
+typedef uint32_t uint;
 
-    using string = std::string;
-    using std::move;
-    template<class T> using vector = std::vector<T>;
-    template<class T> using list = std::list<T>;
-    template<class T> using set = std::set<T>;
-    template<class T> using shared_ptr = std::shared_ptr<T>;
-    template<class T> using unique_ptr = std::unique_ptr<T>;
-    template<class T> using unordered_set = std::unordered_set<T>;
-    template<class Ta, class Tb> using pair = std::pair<Ta, Tb>;
-    template<class Ta, class Tb> using map = std::map<Ta, Tb>;
-    template<class Ta, class Tb> using unordered_map = std::unordered_map<Ta, Tb>;
+using string = std::string;
+using std::move;
+template<class T> using vector = std::vector<T>;
+template<class T> using list = std::list<T>;
+template<class T> using set = std::set<T>;
+template<class T> using shared_ptr = std::shared_ptr<T>;
+template<class T> using unique_ptr = std::unique_ptr<T>;
+template<class T> using unordered_set = std::unordered_set<T>;
+template<class Ta, class Tb> using pair = std::pair<Ta, Tb>;
+template<class Ta, class Tb> using map = std::map<Ta, Tb>;
+template<class Ta, class Tb> using unordered_map = std::unordered_map<Ta, Tb>;
 
-    struct Node;
-    struct Var;
-    struct Op;
-    struct Allocator;
-    struct Executor;
-    struct VarHolder;
-    struct VarPtr;
-    struct FusedOp;
-    struct OpCompiler;
-    struct PassManager;
-    struct Pass;
-    struct TunerManager;
-    struct Tuner;
-    struct NanoString;
+struct Node;
+struct Var;
+struct Op;
+struct Allocator;
+struct Executor;
+struct VarHolder;
+struct VarPtr;
+struct FusedOp;
+struct OpCompiler;
+struct PassManager;
+struct Pass;
+struct TunerManager;
+struct Tuner;
+struct NanoString;
 
-    typedef map<string, string> map_string;
-    typedef map<string, int> loop_options_t;
-    typedef map<string, vector<int>> loop_option_candidates_t;
-    typedef void (*jit_op_entry_t)(Op *op);
+typedef map<string, string> map_string;
+typedef map<string, int> loop_options_t;
+typedef map<string, vector<int>> loop_option_candidates_t;
+typedef void (*jit_op_entry_t)(Op *op);
 
-    template<class T>
-    T clone(const T& a) { return a; }
+template<class T>
+T clone(const T& a) { return a; }
 
 #define function_alias(A, B) \
 template <typename... Args> \

@@ -7,10 +7,13 @@
 #include <map>
 #include <tuple>
 #include <sstream>
+#include <vector>
 
 template<class T>
 T get_from_env(const char *name, const T &_default);
 
+template <>
+std::vector<int> get_from_env(const char* name, const std::vector<int>& _default);
 // 特别化
 template<>
 std::string get_from_env(const char *name, const std::string &_default);

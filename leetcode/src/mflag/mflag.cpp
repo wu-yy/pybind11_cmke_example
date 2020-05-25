@@ -24,6 +24,13 @@ template int get_from_env(const char *name, const int &_default);
 // template std::string get_from_env(const char *name, const std::string &_default);
 
 
+//template std::vector<int> get_from_env(const char *name, const std::vector<int> &_default);
+
+template <>
+std::vector<int> get_from_env(const char* name, const std::vector<int>& _default) {
+    return std::vector<int>();
+}
+
 // 特别化,重载std::string 类型
 template<>
 std::string get_from_env(const char *name, const std::string &_default) {
