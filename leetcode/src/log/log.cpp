@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include "log/log.h"
 #include "log/mwsr_list.h"
-//#include "log/tracer.h"
+#include "log/tracer.h"
 
 namespace leetcode {
     DEFINE_FLAG(int, log_silent, 0, "The log will be completely silent.");
@@ -190,7 +190,7 @@ namespace leetcode {
             LOGf << "Accessing protect pages, maybe jit_key too long";
         }
         if (signal == SIGSEGV) {
-            //print_trace();
+            print_trace();
             std::cerr << "Segfault, exit" << std::endl;
         } else {
             std::cerr << "Get signal " << signal << ", exit" << std::endl;

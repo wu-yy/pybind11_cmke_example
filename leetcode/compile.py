@@ -96,6 +96,7 @@ def get_full_path_of_executable(name):
     return get_full_path_of_executable(find_exe(name))
 
 def check_cuda():
+    return
     if nvcc_path == "":
         return
     global cc_flags, has_cuda, core_link_flags, cuda_dir, cuda_lib, cuda_include
@@ -116,29 +117,6 @@ def env_or_try_find(name, bname):
         return os.environ[name]
     return try_find_exe(bname)
 
-has_cuda = 0
-nvcc_path = env_or_try_find('nvcc_path', '/usr/local/cuda/bin/nvcc')
-check_cuda()
-nvcc_flags = os.environ.get("nvcc_flags", "")
-if has_cuda:
-    nvcc_flags += cc_flags + link_flags
-    def convert_nvcc_flags(nvcc_flags):
-        # nvcc don't support -Wall option
-        nvcc_flags = nvcc_flags.replace("-Wall", "")
-        nvcc_flags = nvcc_flags.replace("-Wno-unknown-pragmas", "")
-        nvcc_flags = nvcc_flags.replace("-fopenmp", "")
-        nvcc_flags = nvcc_flags.replace("-march", "-Xcompiler -march")
-        nvcc_flags = nvcc_flags.replace("-Werror", "")
-        nvcc_flags = nvcc_flags.replace("-fPIC", "-Xcompiler -fPIC")
-        nvcc_flags = nvcc_flags.replace("-fdiagnostics", "-Xcompiler -fdiagnostics")
-        nvcc_flags += f" -x cu --cudart=shared -ccbin='{cc_path}' --use_fast_math "
-        # nvcc warning is noise
-        nvcc_flags += " -w "
-        nvcc_flags += f" -I'{os.path.join(project_path, 'extern/cuda/inc')}' "
-        if os.environ.get("cuda_debug", "0") == "1":
-            nvcc_flags += " -G "
-        return nvcc_flags
-    nvcc_flags = convert_nvcc_flags(nvcc_flags)
 
 '''
 cc_flags
@@ -168,6 +146,29 @@ if ' -O' not in cc_flags:
     opt_flags += " -O2 "
     kernel_opt_flags += " -Ofast "
 
+has_cuda = 0
+nvcc_path = env_or_try_find('nvcc_path', '/usr/local/cuda/bin/nvcc')
+check_cuda()
+nvcc_flags = os.environ.get("nvcc_flags", "")
+if has_cuda:
+    nvcc_flags += cc_flags + link_flags
+    def convert_nvcc_flags(nvcc_flags):
+        # nvcc don't support -Wall option
+        nvcc_flags = nvcc_flags.replace("-Wall", "")
+        nvcc_flags = nvcc_flags.replace("-Wno-unknown-pragmas", "")
+        nvcc_flags = nvcc_flags.replace("-fopenmp", "")
+        nvcc_flags = nvcc_flags.replace("-march", "-Xcompiler -march")
+        nvcc_flags = nvcc_flags.replace("-Werror", "")
+        nvcc_flags = nvcc_flags.replace("-fPIC", "-Xcompiler -fPIC")
+        nvcc_flags = nvcc_flags.replace("-fdiagnostics", "-Xcompiler -fdiagnostics")
+        nvcc_flags += f" -x cu --cudart=shared -ccbin='{cc_path}' --use_fast_math "
+        # nvcc warning is noise
+        nvcc_flags += " -w "
+        nvcc_flags += f" -I'{os.path.join(project_path, 'extern/cuda/inc')}' "
+        if os.environ.get("cuda_debug", "0") == "1":
+            nvcc_flags += " -G "
+        return nvcc_flags
+    nvcc_flags = convert_nvcc_flags(nvcc_flags)
 
 # compile first enter
 def check_cache_compile():
@@ -253,7 +254,8 @@ def compile(compiler, flags, inputs, output, combind_build=False):
     run_cmds(cmds, cache_path, project_path)
     print("compile binary end!")
     # LOG.i(obj_files)
-    link_temp =link + f" -L/Users/wuyongyu/anaconda3/lib/python3.7/config-3.7m-darwin -lpython3.7m "
+    # link_temp =link + f" -L/Users/wuyongyu/anaconda3/lib/python3.7/config-3.7m-darwin -lpython3.7m "
+    link_temp =link
     cmd = f"{compiler} {' '.join(obj_files)} {flags} {lto_flags} {link_temp} -o {output}"
     print(cmd)
     return do_compile(cmd)
@@ -350,13 +352,14 @@ str1 = run_cmd("pwd")
 LOG.i("pyjt_compile begin..")
 # pyjt_compile(cache_path, project_path)  # debug
 
-files2 = run_cmd(f'find "{os.path.join(cache_path, "gen")}" | grep "cpp$"').splitlines()
+# files2 = run_cmd(f'find "{os.path.join(cache_path, "gen")}" | grep "cpp$"').splitlines()
+files2 = []
 files4 = run_cmd('find -L src | grep "cpp$"', project_path).splitlines()
 
 files = files2 + files4
 
 for v in utils_core_files:
-    if v == "src/mflag/mflag.cpp" or v == "src/log/log.cpp" or v == "src/flags.cpp":
+    if v == "src/mflag/mflag.cpp" or v == "src/log/log.cpp" or v == "src/log/tracer.cpp":
         continue
     files.remove(v)
 

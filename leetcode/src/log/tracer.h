@@ -7,6 +7,6 @@
 
 namespace leetcode {
 
-    void print_trace();
+void print_trace();
 
 } // leetcode

@@ -13,7 +13,7 @@
 using string = std::string;
 
 namespace leetcode {
-void print_trace();
+//void print_trace();
 extern "C" uint32_t get_tid();
 extern "C" bool g_supports_color;
 extern "C" void print_prefix(std::ostream* out);
